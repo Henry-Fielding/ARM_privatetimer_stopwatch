@@ -62,6 +62,19 @@ unsigned int update_hours (unsigned int hours, unsigned int unused) {
 	return hours;
 }
 
+
+void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned int taskCount) {
+	unsigned int taskID;
+	for (taskID = 0; taskID < taskCount; taskID++) {
+		time[taskID] = 0;
+		taskLastTime[taskID] = Timer_readTimer();      //All tasks start now
+	}
+
+	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
+	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
+	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
+}
+
 main() {
 	// local variables
 	const unsigned int taskCount = 4;
@@ -70,34 +83,24 @@ main() {
 	unsigned int taskInterval[taskCount] = {10000, 1000000, 60000000, 3600000000};
 	TaskFunction taskFunctions[taskCount] = {&update_hundredths, &update_seconds, &update_minutes, &update_hours};
 
-	unsigned int time[taskCount] = {0, 0, 0, 0};
+	unsigned int time[taskCount] = {0};
+	unsigned int currentTimerValue;
 
 	// configure ARM private timer
 	Timer_initialise(0xFFFEC600);
 	Timer_setLoadValue(0xFFFFFFFF);
 	Timer_setControl(224, 0, 1, 1);
 
-	for (taskID = 0; taskID < taskCount; taskID++) {
-		taskLastTime[taskID] = Timer_readTimer();      //All tasks start now
-	}
-
-	// set intial task times
-//	taskLastTime[0] = Timer_readTimer();		//All tasks start now
-//	for (taskID = 1; taskID < taskCount+1; taskID++) {
-//		taskLastTime[taskID] = 0;							//All timer storage start at 0
-//	}
+	// All tasks start now
+	reset_stopWatch(time, taskLastTime, taskCount);
 
 	while(1) {
-		// Read the current time
-		unsigned int currentTimerValue = Timer_readTimer();
+		if(*key_ptr & 0x01) Timer_setControl(224, 0, 1, 1);						//enable timer when start pressed
+		else if(*key_ptr & 0x02) Timer_setControl(224, 0, 1, 0);				//disable timer when stop pressed
+		else if(*key_ptr &0x04) reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
 
-		if(*key_ptr & 0x01){
-			Timer_setControl(224, 0, 1, 1);
-			*LEDR_ptr = 0x01;
-		} else if(*key_ptr & 0x02){
-			Timer_setControl(224, 0, 1, 0);
-			*LEDR_ptr = 0x02;
-		} else *LEDR_ptr = 0x00;
+		// Read the current time
+		currentTimerValue = Timer_readTimer();
 
 		for (taskID = 0; taskID < taskCount; taskID++) {
 			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
