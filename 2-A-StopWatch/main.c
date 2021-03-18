@@ -16,6 +16,10 @@
 #include "HPS_PrivateTimer/HPS_PrivateTimer.h"
 #include "DE1Soc_SevenSeg/DE1Soc_SevenSeg.h"
 
+volatile unsigned int *key_ptr = (unsigned int *)0xFF200050; // KEYS 0-3 (push buttons)
+volatile unsigned int *LEDR_ptr = (unsigned int *)0xFF200000; // LEDS 0-9
+
+
 // Define new data type for a functions which takes an int and returns an int
 typedef unsigned int (*TaskFunction)(unsigned int, unsigned int);
 
@@ -59,8 +63,6 @@ unsigned int update_hours (unsigned int hours, unsigned int unused) {
 }
 
 main() {
-
-
 	// local variables
 	const unsigned int taskCount = 4;
 	unsigned int taskID = 0;
@@ -73,7 +75,7 @@ main() {
 	// configure ARM private timer
 	Timer_initialise(0xFFFEC600);
 	Timer_setLoadValue(0xFFFFFFFF);
-	Timer_setControl(4, 0, 1, 1);
+	Timer_setControl(224, 0, 1, 1);
 
 	for (taskID = 0; taskID < taskCount; taskID++) {
 		taskLastTime[taskID] = Timer_readTimer();      //All tasks start now
@@ -88,6 +90,14 @@ main() {
 	while(1) {
 		// Read the current time
 		unsigned int currentTimerValue = Timer_readTimer();
+
+		if(*key_ptr & 0x01){
+			Timer_setControl(224, 0, 1, 1);
+			*LEDR_ptr = 0x01;
+		} else if(*key_ptr & 0x02){
+			Timer_setControl(224, 0, 1, 0);
+			*LEDR_ptr = 0x02;
+		} else *LEDR_ptr = 0x00;
 
 		for (taskID = 0; taskID < taskCount; taskID++) {
 			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
