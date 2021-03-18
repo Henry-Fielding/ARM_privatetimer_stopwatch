@@ -16,17 +16,33 @@
 #include "HPS_PrivateTimer/HPS_PrivateTimer.h"
 #include "DE1Soc_SevenSeg/DE1Soc_SevenSeg.h"
 
+// Define new data type for a functions which takes an int and returns an int
+typedef unsigned int (*TaskFunction)(unsigned int);
 
+// Declare functions
+unsigned int update_hundredths (unsigned int hundredths) {
+	if (hundredths > 99) hundredths = 1;
+	else hundredths = hundredths + 1;
+	DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
+
+	return hundredths;
+}
 
 main() {
-
-
 	// local variables
-	unsigned int hundredths;
-	unsigned int lastTime;
-	unsigned int taskInterval = 2250000;
+	const unsigned int taskCount = 1;
+	unsigned int taskID = 0;
+	unsigned int taskLastTime[taskCount];
+	unsigned int taskInterval[taskCount] = {2250000};
+	TaskFunction taskFunctions[taskCount] = {&update_hundredths};
 
+	// current timer storage variable
+	unsigned int time[taskCount];
 
+	// set intial task times
+	for (taskID = 0; taskID < taskCount; taskID++) {
+		taskLastTime[taskID] = Timer_readTimer();      //All tasks start now
+	}
 
 	// configure ARM private timer
 	Timer_initialise(0xFFFEC600);
@@ -37,13 +53,12 @@ main() {
 		// Read the current time
 		unsigned int currentTimerValue = Timer_readTimer();
 
-		if ((lastTime - currentTimerValue) >= taskInterval) {
-			if (hundredths > 99) hundredths = 1;
-			else hundredths = hundredths + 1;
-			DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
+		for (taskID = 0; taskID < taskCount; taskID++) {
+			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
+				time[taskID] = taskFunctions[taskID](time[taskID]);
 
-
-			lastTime = lastTime - taskInterval;
+				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
+			}
 		}
 
 		// Make sure we clear the private timer interrupt flag if it is set
