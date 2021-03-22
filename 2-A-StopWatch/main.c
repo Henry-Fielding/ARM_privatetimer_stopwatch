@@ -49,31 +49,6 @@ main() {
 	reset_stopWatch(time, taskLastTime, taskCount);
 
 	while(1) {
-		// poll keys to check for user inputs
-//		if(*key_edge_ptr & 0x01) {						//enable timer when start pressed
-//			if(state == 0) {
-//				// stop state
-//				state = 1;
-//				Timer_setControl(224, 0, 1, 1);
-//				*LEDR_ptr &= ~0x01;
-//			} else {
-//				// start state
-//				state = 0;
-//				Timer_setControl(224, 0, 1, 0);
-//				*LEDR_ptr |= 0x01;
-//			}
-//		}
-//		else if(*key_edge_ptr &0x04) {
-//			if(state == 0) {
-//				reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
-//			} else {
-//
-//
-//			}
-//		}
-//		temp = *key_edge_ptr;
-//		*key_edge_ptr = temp;
-//
 
 		switch (state) {
 			case RESET_STATE :
@@ -127,19 +102,21 @@ main() {
 		*key_edge_ptr = temp;
 
 
-
-
+		 stopWatchTimer_updateTimer (taskFunctions, time, taskLastTime, taskInterval, taskCount);
 
 
 		// Read the current time
-		currentTimerValue = Timer_readTimer();
+//		currentTimerValue = Timer_readTimer();
+//
+//		for (taskID = 0; taskID < taskCount; taskID++) {
+//			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
+//				time[taskID] = taskFunctions[taskID](time[taskID]);
+//				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
+//			}
+//		}
 
-		for (taskID = 0; taskID < taskCount; taskID++) {
-			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
-				time[taskID] = taskFunctions[taskID](time[taskID]);
-				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
-			}
-		}
+
+
 
 		if (displayMode == 1) display_stopWatch(splitTime);
 		else display_stopWatch(time);
@@ -158,12 +135,12 @@ main() {
 }
 
 
-void configure_privateTimer () {
-	Timer_initialise(0xFFFEC600);	// set private timer base address
-	Timer_setLoadValue(0xFFFFFFFF);	// load maximum value
-	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
-
-}
+//void configure_privateTimer () {
+//	Timer_initialise(0xFFFEC600);	// set private timer base address
+//	Timer_setLoadValue(0xFFFFFFFF);	// load maximum value
+//	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
+//
+//}
 
 void configure_servoDrivers () {
 	//signed char calibrate = -100;
@@ -176,44 +153,44 @@ void configure_servoDrivers () {
 
 }
 
+////
+//// Declare task scheduler functions
+////
+//unsigned int update_hundredths (unsigned int hundredths) {
+//	if (hundredths < 99) hundredths = hundredths + 1;
+//	else hundredths = 0;
 //
-// Declare task scheduler functions
+//	return hundredths;
+//}
 //
-unsigned int update_hundredths (unsigned int hundredths) {
-	if (hundredths < 99) hundredths = hundredths + 1;
-	else hundredths = 0;
-
-	return hundredths;
-}
-
-unsigned int update_seconds (unsigned int seconds) {
-	signed char position; // calibration performed manually as calibration function does not work
-	signed char calibration = 20;
-
-	if (seconds < 59) seconds = seconds + 1;
-	else seconds = 0;
-
-	if (seconds % 2) position = 64 + calibration;
-	else position = -64 + calibration;
-
-	Servo_pulseWidth(0, position);
-
-	return seconds;
-}
-
-unsigned int update_minutes (unsigned int minutes) {
-	if (minutes < 59) minutes = minutes + 1;
-	else minutes = 0;
-
-	return minutes;
-}
-
-unsigned int update_hours (unsigned int hours) {
-	if (hours < 99) hours = hours + 1;
-	else hours = 0;
-
-	return hours;
-}
+//unsigned int update_seconds (unsigned int seconds) {
+//	signed char position; // calibration performed manually as calibration function does not work
+//	signed char calibration = 20;
+//
+//	if (seconds < 59) seconds = seconds + 1;
+//	else seconds = 0;
+//
+//	if (seconds % 2) position = 64 + calibration;
+//	else position = -64 + calibration;
+//
+//	Servo_pulseWidth(0, position);
+//
+//	return seconds;
+//}
+//
+//unsigned int update_minutes (unsigned int minutes) {
+//	if (minutes < 59) minutes = minutes + 1;
+//	else minutes = 0;
+//
+//	return minutes;
+//}
+//
+//unsigned int update_hours (unsigned int hours) {
+//	if (hours < 99) hours = hours + 1;
+//	else hours = 0;
+//
+//	return hours;
+//}
 
 void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned int arrayLength) {
 	unsigned int i;
@@ -228,6 +205,19 @@ void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned i
 	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
 	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
 }
+
+void update_split_mode_stopWatch (int* splitMode) {
+	if (*splitMode == CUMMULATIVE_SPLIT) {
+		*splitMode = LAP_SPLIT;
+		*LEDR_ptr &= ~0x004;
+		*LEDR_ptr |= 0x002;
+	} else if (*splitMode == LAP_SPLIT) {
+		*splitMode = CUMMULATIVE_SPLIT;
+		*LEDR_ptr &= ~0x002;
+		*LEDR_ptr |= 0x004;
+	}
+}
+
 
 void split_stopWatch (unsigned int* time, unsigned int* splitTime, unsigned int arrayLength) {
 	unsigned int i;
@@ -256,17 +246,4 @@ void display_stopWatch (unsigned int* time) {
 	}
 
 
-}
-
-
-void update_split_mode_stopWatch (int* splitMode) {
-	if (*splitMode == CUMMULATIVE_SPLIT) {
-		*splitMode = LAP_SPLIT;
-		*LEDR_ptr &= ~0x004;
-		*LEDR_ptr |= 0x002;
-	} else if (*splitMode == LAP_SPLIT) {
-		*splitMode = CUMMULATIVE_SPLIT;
-		*LEDR_ptr &= ~0x002;
-		*LEDR_ptr |= 0x004;
-	}
 }
