@@ -14,21 +14,21 @@
 // Define new data type for a functions which takes an int and returns an int
 typedef unsigned int (*TaskFunction)(unsigned int);
 
+
+//Define functions
 void configure_privateTimer (void);
 
-void stopWatchTimer_updateTimer (TaskFunction* taskFunctions, unsigned int* time, unsigned int* taskLastTime, long long* taskInterval,  unsigned int taskCount);
-
+void stopWatchTimer_updateTimer (TaskFunction*, unsigned int*, unsigned int*, long long*,  unsigned int);
 
 void stopWatchTimer_resetTimer (unsigned int*, unsigned int*, unsigned int);
 
-unsigned int update_hundredths (unsigned int);
+void stopWatchTimer_splitTimer (unsigned int*, unsigned int*, unsigned int);
 
+unsigned int update_hundredths (unsigned int);
 
 unsigned int update_seconds (unsigned int);
 
-
 unsigned int update_minutes (unsigned int);
-
 
 unsigned int update_hours (unsigned int);
 

@@ -82,7 +82,7 @@ main() {
 				if(*key_edge_ptr & 0x01) state = STOP_STATE;
 				else if(*key_edge_ptr & 0x04) {
 					state = SPLIT_STATE;
-					split_stopWatch(time, splitTime, taskCount);
+					stopWatchTimer_splitTimer(time, splitTime, taskCount);
 					if (splitMode == LAP_SPLIT) stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
 				} else state = START_STATE;
 
@@ -121,12 +121,6 @@ main() {
 }
 
 
-//void configure_privateTimer () {
-//	Timer_initialise(0xFFFEC600);	// set private timer base address
-//	Timer_setLoadValue(0xFFFFFFFF);	// load maximum value
-//	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
-//
-//}
 
 void configure_servoDrivers () {
 	signed char calibrate = 20;
@@ -137,21 +131,6 @@ void configure_servoDrivers () {
 	Servo_pulseWidthRange(0, true);
 
 }
-
-
-//void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned int arrayLength) {
-//	unsigned int i;
-//
-////	Timer_setControl(224, 0, 1, 0);
-//	for (i = 0; i < arrayLength; i++) {
-//		time[i] = 0;
-//		taskLastTime[i] = Timer_readTimer();      //All tasks start now
-//	}
-//
-//	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
-//	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
-//	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
-//}
 
 void update_split_mode_stopWatch (int* splitMode) {
 	if (*splitMode == CUMMULATIVE_SPLIT) {
@@ -166,13 +145,6 @@ void update_split_mode_stopWatch (int* splitMode) {
 }
 
 
-void split_stopWatch (unsigned int* time, unsigned int* splitTime, unsigned int arrayLength) {
-	unsigned int i;
-
-	for (i = 0; i < arrayLength; i++) {
-		splitTime[i] = time[i];
-	}
-}
 
 void display_stopWatch (unsigned int* time) {
 	unsigned int hundredths = time[0];

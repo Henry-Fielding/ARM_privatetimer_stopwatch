@@ -12,10 +12,14 @@
 //	unsigned int taskLastTime[taskCount];
 //	long long taskInterval[taskCount] = {10000, 1000000, 60000000, 3600000000};
 //	TaskFunction taskFunctions[taskCount] = {&update_hundredths, &update_seconds, &update_minutes, &update_hours};
-//
-//	unsigned int currentTimerValue;
-//
-//	configure_privateTimer();
+
+
+
+void configure_privateTimer () {
+	Timer_initialise(0xFFFEC600);	// set private timer base address
+	Timer_setLoadValue(0xFFFFFFFF);	// load maximum value
+	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
+}
 
 void stopWatchTimer_updateTimer (TaskFunction* taskFunctions, unsigned int* time, unsigned int* taskLastTime, long long* taskInterval,  unsigned int taskCount) {
 	unsigned int taskID;
@@ -27,28 +31,23 @@ void stopWatchTimer_updateTimer (TaskFunction* taskFunctions, unsigned int* time
 			taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
 		}
 	}
-
-}
-
-void configure_privateTimer () {
-	Timer_initialise(0xFFFEC600);	// set private timer base address
-	Timer_setLoadValue(0xFFFFFFFF);	// load maximum value
-	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
-
 }
 
 void stopWatchTimer_resetTimer (unsigned int* time, unsigned int* taskLastTime, unsigned int arrayLength) {
 	unsigned int i;
 
-//	Timer_setControl(224, 0, 1, 0);
 	for (i = 0; i < arrayLength; i++) {
 		time[i] = 0;
 		taskLastTime[i] = Timer_readTimer();      //All tasks start now
 	}
+}
 
-	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
-	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
-	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
+void stopWatchTimer_splitTimer (unsigned int* time, unsigned int* splitTime, unsigned int arrayLength) {
+	unsigned int i;
+
+	for (i = 0; i < arrayLength; i++) {
+		splitTime[i] = time[i];
+	}
 }
 
 
