@@ -17,6 +17,7 @@ main() {
 	// taskscheduler variables
 	int temp;
 	int state = 0;
+	int displayMode;
 	const unsigned int taskCount = 4;
 	unsigned int taskID = 0;
 	unsigned int taskLastTime[taskCount];
@@ -25,6 +26,12 @@ main() {
 
 	unsigned int currentTimerValue;
 	unsigned int time[taskCount] = {0};
+	unsigned int splitTime[taskCount] = {0};
+
+	#define RESET_STATE 0
+	#define STOP_STATE 1
+	#define START_STATE 2
+	#define SPLIT_STATE 3
 
 	//configure drivers
 	configure_privateTimer();
@@ -35,35 +42,68 @@ main() {
 
 	while(1) {
 		// poll keys to check for user inputs
-		if(*key_edge_ptr & 0x01) {						//enable timer when start pressed
-			if(state == 0) {
-				// stop state
-				state = 1;
-				Timer_setControl(224, 0, 1, 1);
-				*LEDR_ptr &= ~0x01;
-			} else {
-				// start state
-				state = 0;
+//		if(*key_edge_ptr & 0x01) {						//enable timer when start pressed
+//			if(state == 0) {
+//				// stop state
+//				state = 1;
+//				Timer_setControl(224, 0, 1, 1);
+//				*LEDR_ptr &= ~0x01;
+//			} else {
+//				// start state
+//				state = 0;
+//				Timer_setControl(224, 0, 1, 0);
+//				*LEDR_ptr |= 0x01;
+//			}
+//		}
+//		else if(*key_edge_ptr &0x04) {
+//			if(state == 0) {
+//				reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
+//			} else {
+//
+//
+//			}
+//		}
+//		temp = *key_edge_ptr;
+//		*key_edge_ptr = temp;
+//
+
+		switch (state) {
+			case RESET_STATE :
+				displayMode = 0;
+				reset_stopWatch(time, taskLastTime, taskCount);
 				Timer_setControl(224, 0, 1, 0);
-				*LEDR_ptr |= 0x01;
-			}
+
+				state = STOP_STATE;
+				break;
+
+			case STOP_STATE :
+				displayMode = 0;
+				Timer_setControl(224, 0, 1, 0);
+
+				if(*key_edge_ptr & 0x01) state = START_STATE;
+				else if(*key_edge_ptr & 0x04) state = RESET_STATE;
+				else state = STOP_STATE;
+
+				break;
+
+			case START_STATE :
+				displayMode = 0;
+				Timer_setControl(224, 0, 1, 1);
+
+				if(*key_edge_ptr & 0x01) state = STOP_STATE;
+				else state = START_STATE;
+
+						break;
+
+			case SPLIT_STATE :
+
+						break;
+
 		}
-		else if(*key_edge_ptr &0x04) {
-			if(state == 0) {
-				reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
-			} else {
-
-
-			}
-		}
-
-
-
-
-
 
 		temp = *key_edge_ptr;
 		*key_edge_ptr = temp;
+
 
 
 
@@ -79,7 +119,8 @@ main() {
 			}
 		}
 
-		display_stopWatch(time);
+		if (displayMode == 1) display_stopWatch(splitTime);
+		else display_stopWatch(time);
 
 		// Make sure we clear the private timer interrupt flag if it is set
 		if (Timer_readInterrupt() & 0x1) {
