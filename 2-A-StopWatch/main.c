@@ -11,11 +11,7 @@
  *
  */
 
-// Include required drivers:
-#include "HPS_Watchdog/HPS_Watchdog.h"
-#include "HPS_PrivateTimer/HPS_PrivateTimer.h"
-#include "DE1Soc_SevenSeg/DE1Soc_SevenSeg.h"
-#include "DE1SoC_Servo/DE1SoC_Servo.h"
+#include "main.h"
 
 volatile unsigned int *key_ptr = (unsigned int *)0xFF200050; // KEYS 0-3 (push buttons)
 volatile unsigned int *LEDR_ptr = (unsigned int *)0xFF200000; // LEDS 0-9
