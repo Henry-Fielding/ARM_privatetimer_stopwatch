@@ -11,14 +11,22 @@
  *
  */
 
-#ifndef MAIN_H_
-#define MAIN_H_
+#ifndef STOPWATCH_MAIN_H_
+#define STOPWATCH_MAIN_H_
 
-// Include required drivers:
+// Include required header files
 #include "HPS_Watchdog/HPS_Watchdog.h"
 #include "HPS_PrivateTimer/HPS_PrivateTimer.h"
 #include "DE1Soc_SevenSeg/DE1Soc_SevenSeg.h"
 #include "DE1SoC_Servo/DE1SoC_Servo.h"
 #include "DE1SoC_LT24/DE1SoC_LT24.h"
 
-#endif /* MAIN_H_ */
+// useful hardware address definitions
+volatile unsigned int *key_ptr = (unsigned int *)0xFF200050; // KEYS 0-3 (push buttons)
+volatile unsigned int *LEDR_ptr = (unsigned int *)0xFF200000; // LEDS 0-9
+
+// Define new data type for a functions which takes an int and returns an int
+typedef unsigned int (*TaskFunction)(unsigned int, unsigned int);
+
+
+#endif /* STOPWATCH_MAIN_H_ */

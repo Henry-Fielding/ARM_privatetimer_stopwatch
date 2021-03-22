@@ -13,12 +13,9 @@
 
 #include "main.h"
 
-volatile unsigned int *key_ptr = (unsigned int *)0xFF200050; // KEYS 0-3 (push buttons)
-volatile unsigned int *LEDR_ptr = (unsigned int *)0xFF200000; // LEDS 0-9
 
 
-// Define new data type for a functions which takes an int and returns an int
-typedef unsigned int (*TaskFunction)(unsigned int, unsigned int);
+
 
 //
 // Declare task scheduler functions
