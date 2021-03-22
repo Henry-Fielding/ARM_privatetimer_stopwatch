@@ -39,20 +39,20 @@ void configure_privateTimer (void);
 void configure_servoDrivers (void);
 
 
-unsigned int update_hundredths (unsigned int hours, unsigned int hundredths);
+unsigned int update_hundredths (unsigned int, unsigned int);
 
 
-unsigned int update_seconds (unsigned int hours, unsigned int seconds);
+unsigned int update_seconds (unsigned int, unsigned int);
 
 
-unsigned int update_minutes (unsigned int hours, unsigned int minutes);
+unsigned int update_minutes (unsigned int, unsigned int);
 
 
-unsigned int update_hours (unsigned int hours, unsigned int unused);
+unsigned int update_hours (unsigned int, unsigned int);
 
 
-void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned int taskCount);
+void reset_stopWatch (unsigned int*, unsigned int*, unsigned int);
 
-
+void display_stopWatch (unsigned int*);
 
 #endif /* STOPWATCH_MAIN_H_ */

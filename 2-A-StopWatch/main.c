@@ -40,15 +40,28 @@ main() {
 				// stop state
 				state = 1;
 				Timer_setControl(224, 0, 1, 1);
-				*LEDR_ptr |= 0x01;
-			} else if (state == 1 ) {
+				*LEDR_ptr &= ~0x01;
+			} else {
 				// start state
 				state = 0;
 				Timer_setControl(224, 0, 1, 0);
-				*LEDR_ptr &= ~0x01;
+				*LEDR_ptr |= 0x01;
 			}
 		}
-		else if(*key_edge_ptr &0x04) reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
+		else if(*key_edge_ptr &0x04) {
+			if(state == 0) {
+				reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
+			} else {
+
+
+			}
+		}
+
+
+
+
+
+
 		temp = *key_edge_ptr;
 		*key_edge_ptr = temp;
 
@@ -64,6 +77,7 @@ main() {
 				time[taskID] = taskFunctions[taskID](time[3], time[taskID]);
 				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
 			}
+			display_stopWatch(time);
 		}
 
 		// Make sure we clear the private timer interrupt flag if it is set
@@ -105,7 +119,7 @@ unsigned int update_hundredths (unsigned int hours, unsigned int hundredths) {
 	if (hundredths < 99) hundredths = hundredths + 1;
 	else hundredths = 0;
 
-	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
+//	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
 
 	return hundredths;
 }
@@ -117,8 +131,8 @@ unsigned int update_seconds (unsigned int hours, unsigned int seconds) {
 	if (seconds < 59) seconds = seconds + 1;
 	else seconds = 0;
 
-	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(2, seconds);
-	else DE1SoC_SevenSeg_SetDoubleDec(0, seconds);
+//	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(2, seconds);
+//	else DE1SoC_SevenSeg_SetDoubleDec(0, seconds);
 
 	if (seconds % 2) position = 64 + calibration;
 	else position = -64 + calibration;
@@ -132,8 +146,8 @@ unsigned int update_minutes (unsigned int hours, unsigned int minutes) {
 	if (minutes < 59) minutes = minutes + 1;
 	else minutes = 0;
 
-	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(4, minutes);
-	else DE1SoC_SevenSeg_SetDoubleDec(2, minutes);
+//	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(4, minutes);
+//	else DE1SoC_SevenSeg_SetDoubleDec(2, minutes);
 
 	return minutes;
 }
@@ -142,7 +156,7 @@ unsigned int update_hours (unsigned int hours, unsigned int unused) {
 	if (hours < 99) hours = hours + 1;
 	else hours = 0;
 
-	if (hours > 0) DE1SoC_SevenSeg_SetDoubleDec(4, hours);
+//	if (hours > 0) DE1SoC_SevenSeg_SetDoubleDec(4, hours);
 
 	return hours;
 }
@@ -159,4 +173,17 @@ void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned i
 	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
 	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
 	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
+}
+
+void display_stopWatch (unsigned int* time) {
+	unsigned int hundredths = time[0];
+	unsigned int seconds = time[1];
+	unsigned int minutes = time[2];
+	unsigned int hours = time[3];
+
+	DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
+	DE1SoC_SevenSeg_SetDoubleDec(2, seconds);
+	DE1SoC_SevenSeg_SetDoubleDec(4, minutes);
+
+
 }
