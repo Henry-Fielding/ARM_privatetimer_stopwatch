@@ -53,6 +53,10 @@ unsigned int update_hours (unsigned int);
 
 void reset_stopWatch (unsigned int*, unsigned int*, unsigned int);
 
+void split_stopWatch (unsigned int*, unsigned int*, unsigned int);
+
 void display_stopWatch (unsigned int*);
+
+void update_split_mode_stopWatch (int*);
 
 #endif /* STOPWATCH_MAIN_H_ */
