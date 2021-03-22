@@ -16,6 +16,7 @@
 main() {
 	// taskscheduler variables
 	int temp;
+	int state = 0;
 	const unsigned int taskCount = 4;
 	unsigned int taskID = 0;
 	unsigned int taskLastTime[taskCount];
@@ -34,8 +35,19 @@ main() {
 
 	while(1) {
 		// poll keys to check for user inputs
-		if(*key_edge_ptr & 0x01) Timer_setControl(224, 0, 1, 1);						//enable timer when start pressed
-		else if(*key_edge_ptr & 0x02) Timer_setControl(224, 0, 1, 0);				//disable timer when stop pressed
+		if(*key_edge_ptr & 0x01) {						//enable timer when start pressed
+			if(state == 0) {
+				// stop state
+				state = 1;
+				Timer_setControl(224, 0, 1, 1);
+				*LEDR_ptr |= 0x01;
+			} else if (state == 1 ) {
+				// start state
+				state = 0;
+				Timer_setControl(224, 0, 1, 0);
+				*LEDR_ptr &= ~0x01;
+			}
+		}
 		else if(*key_edge_ptr &0x04) reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
 		temp = *key_edge_ptr;
 		*key_edge_ptr = temp;
