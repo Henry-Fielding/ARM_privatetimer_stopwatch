@@ -37,6 +37,21 @@ void configure_privateTimer () {
 
 }
 
+void stopWatchTimer_resetTimer (unsigned int* time, unsigned int* taskLastTime, unsigned int arrayLength) {
+	unsigned int i;
+
+//	Timer_setControl(224, 0, 1, 0);
+	for (i = 0; i < arrayLength; i++) {
+		time[i] = 0;
+		taskLastTime[i] = Timer_readTimer();      //All tasks start now
+	}
+
+	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
+	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
+	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
+}
+
+
 //
 // Declare task scheduler functions
 //

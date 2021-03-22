@@ -18,16 +18,13 @@ main() {
 	int temp;
 	int state = 0;
 
-	bool displayMode = 0;
 	int splitMode = 0;
 
 	const unsigned int taskCount = 4;
-	unsigned int taskID = 0;
 	unsigned int taskLastTime[taskCount];
 	long long taskInterval[taskCount] = {10000, 1000000, 60000000, 3600000000};
 	TaskFunction taskFunctions[taskCount] = {&update_hundredths, &update_seconds, &update_minutes, &update_hours};
 
-	unsigned int currentTimerValue;
 	unsigned int time[taskCount] = {0};
 	unsigned int splitTime[taskCount] = {0};
 
@@ -46,23 +43,27 @@ main() {
 	configure_servoDrivers();
 
 	// Begin task timer now
-	reset_stopWatch(time, taskLastTime, taskCount);
+	stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
 
 	while(1) {
 
+		// update the stopwatch timer value
+		stopWatchTimer_updateTimer (taskFunctions, time, taskLastTime, taskInterval, taskCount);
+
+		// update stopwatch mode
 		switch (state) {
 			case RESET_STATE :
 				Timer_setControl(224, 0, 1, 0);
-				reset_stopWatch(time, taskLastTime, taskCount);
+				stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
 
-				displayMode = 0;
+				display_stopWatch(time);
 
 				state = STOP_STATE;
 				break;
 
 			case STOP_STATE :
 				Timer_setControl(224, 0, 1, 0);
-				displayMode = 0;
+				display_stopWatch(time);
 				*LEDR_ptr |= 0x001;
 
 				if (*key_edge_ptr & 0x02) update_split_mode_stopWatch(&splitMode);
@@ -74,7 +75,7 @@ main() {
 				break;
 
 			case START_STATE :
-				displayMode = 0;
+				display_stopWatch(time);
 				Timer_setControl(224, 0, 1, 1);
 				*LEDR_ptr &= ~0x001;
 
@@ -82,13 +83,13 @@ main() {
 				else if(*key_edge_ptr & 0x04) {
 					state = SPLIT_STATE;
 					split_stopWatch(time, splitTime, taskCount);
-					if (splitMode == LAP_SPLIT) reset_stopWatch(time, taskLastTime, taskCount);
+					if (splitMode == LAP_SPLIT) stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
 				} else state = START_STATE;
 
 				break;
 
 			case SPLIT_STATE :
-				displayMode = 1;
+				display_stopWatch(splitTime);
 				Timer_setControl(224, 0, 1, 1);
 
 				if(*key_edge_ptr & 0x04) state = START_STATE;
@@ -102,24 +103,9 @@ main() {
 		*key_edge_ptr = temp;
 
 
-		 stopWatchTimer_updateTimer (taskFunctions, time, taskLastTime, taskInterval, taskCount);
-
-
-		// Read the current time
-//		currentTimerValue = Timer_readTimer();
-//
-//		for (taskID = 0; taskID < taskCount; taskID++) {
-//			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
-//				time[taskID] = taskFunctions[taskID](time[taskID]);
-//				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
-//			}
-//		}
 
 
 
-
-		if (displayMode == 1) display_stopWatch(splitTime);
-		else display_stopWatch(time);
 
 		// Make sure we clear the private timer interrupt flag if it is set
 		if (Timer_readInterrupt() & 0x1) {
@@ -143,68 +129,29 @@ main() {
 //}
 
 void configure_servoDrivers () {
-	//signed char calibrate = -100;
+	signed char calibrate = 20;
 	Servo_initialise(0xFF2000C0);
+	Servo_calibrate(0, calibrate);
+
 	Servo_enable(0, true);
 	Servo_pulseWidthRange(0, true);
 
-	// Servo calibrate does not seem to work
-	//Servo_calibrate(0, calibrate);
-
 }
 
-////
-//// Declare task scheduler functions
-////
-//unsigned int update_hundredths (unsigned int hundredths) {
-//	if (hundredths < 99) hundredths = hundredths + 1;
-//	else hundredths = 0;
-//
-//	return hundredths;
-//}
-//
-//unsigned int update_seconds (unsigned int seconds) {
-//	signed char position; // calibration performed manually as calibration function does not work
-//	signed char calibration = 20;
-//
-//	if (seconds < 59) seconds = seconds + 1;
-//	else seconds = 0;
-//
-//	if (seconds % 2) position = 64 + calibration;
-//	else position = -64 + calibration;
-//
-//	Servo_pulseWidth(0, position);
-//
-//	return seconds;
-//}
-//
-//unsigned int update_minutes (unsigned int minutes) {
-//	if (minutes < 59) minutes = minutes + 1;
-//	else minutes = 0;
-//
-//	return minutes;
-//}
-//
-//unsigned int update_hours (unsigned int hours) {
-//	if (hours < 99) hours = hours + 1;
-//	else hours = 0;
-//
-//	return hours;
-//}
 
-void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned int arrayLength) {
-	unsigned int i;
-
-//	Timer_setControl(224, 0, 1, 0);
-	for (i = 0; i < arrayLength; i++) {
-		time[i] = 0;
-		taskLastTime[i] = Timer_readTimer();      //All tasks start now
-	}
-
-	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
-	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
-	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
-}
+//void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned int arrayLength) {
+//	unsigned int i;
+//
+////	Timer_setControl(224, 0, 1, 0);
+//	for (i = 0; i < arrayLength; i++) {
+//		time[i] = 0;
+//		taskLastTime[i] = Timer_readTimer();      //All tasks start now
+//	}
+//
+//	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
+//	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
+//	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
+//}
 
 void update_split_mode_stopWatch (int* splitMode) {
 	if (*splitMode == CUMMULATIVE_SPLIT) {

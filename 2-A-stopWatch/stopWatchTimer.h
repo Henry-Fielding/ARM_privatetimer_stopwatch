@@ -19,6 +19,8 @@ void configure_privateTimer (void);
 void stopWatchTimer_updateTimer (TaskFunction* taskFunctions, unsigned int* time, unsigned int* taskLastTime, long long* taskInterval,  unsigned int taskCount);
 
 
+void stopWatchTimer_resetTimer (unsigned int*, unsigned int*, unsigned int);
+
 unsigned int update_hundredths (unsigned int);
 
 
