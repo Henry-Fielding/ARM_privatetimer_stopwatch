@@ -13,9 +13,71 @@
 
 #include "main.h"
 
+main() {
+	// taskscheduler variables
+	const unsigned int taskCount = 4;
+	unsigned int taskID = 0;
+	unsigned int taskLastTime[taskCount];
+	long long taskInterval[taskCount] = {10000, 1000000, 60000000, 3600000000};
+	TaskFunction taskFunctions[taskCount] = {&update_hundredths, &update_seconds, &update_minutes, &update_hours};
+
+	unsigned int time[taskCount] = {0};
+	unsigned int currentTimerValue;
+
+	//configure drivers
+	configure_privateTimer();
+	configure_servoDrivers();
+
+	// Begin task timer now
+	reset_stopWatch(time, taskLastTime, taskCount);
+
+	while(1) {
+		// poll keys to check for user inputs
+		if(*key_ptr & 0x01) Timer_setControl(224, 0, 1, 1);						//enable timer when start pressed
+		else if(*key_ptr & 0x02) Timer_setControl(224, 0, 1, 0);				//disable timer when stop pressed
+		else if(*key_ptr &0x04) reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
+
+		// Read the current time
+		currentTimerValue = Timer_readTimer();
+
+		for (taskID = 0; taskID < taskCount; taskID++) {
+			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
+				time[taskID] = taskFunctions[taskID](time[3], time[taskID]);
+				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
+			}
+		}
+
+		// Make sure we clear the private timer interrupt flag if it is set
+		if (Timer_readInterrupt() & 0x1) {
+			// If the timer interrupt flag is set, clear the flag
+			Timer_clearInterrupt();
+		}
+
+		// Finally, reset the watchdog timer.
+		HPS_ResetWatchdog();
+	}
 
 
+}
 
+
+void configure_privateTimer () {
+	Timer_initialise(0xFFFEC600);	// set private timer base address
+	Timer_setLoadValue(0xFFFFFFFF);	// load maximum value
+	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
+
+}
+
+void configure_servoDrivers () {
+	//signed char calibrate = -100;
+	Servo_initialise(0xFF2000C0);
+	Servo_enable(0, true);
+	Servo_pulseWidthRange(0, true);
+
+	// Servo calibrate does not seem to work
+	//Servo_calibrate(0, calibrate);
+
+}
 
 //
 // Declare task scheduler functions
@@ -66,27 +128,6 @@ unsigned int update_hours (unsigned int hours, unsigned int unused) {
 	return hours;
 }
 
-//
-// Declare other functions
-//
-void configure_privateTimer () {
-	Timer_initialise(0xFFFEC600);	// set private timer base address
-	Timer_setLoadValue(0xFFFFFFFF);	// load maximum value
-	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
-
-}
-
-void configure_servoDrivers () {
-	//signed char calibrate = -100;
-	Servo_initialise(0xFF2000C0);
-	Servo_enable(0, true);
-	Servo_pulseWidthRange(0, true);
-
-	// Servo calibrate does not seem to work
-	//Servo_calibrate(0, calibrate);
-
-}
-
 void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned int taskCount) {
 	unsigned int taskID;
 
@@ -99,51 +140,4 @@ void reset_stopWatch (unsigned int* time, unsigned int* taskLastTime, unsigned i
 	DE1SoC_SevenSeg_SetDoubleDec(0, 0);
 	DE1SoC_SevenSeg_SetDoubleDec(2, 0);
 	DE1SoC_SevenSeg_SetDoubleDec(4, 0);
-}
-
-main() {
-	// taskscheduler variables
-	const unsigned int taskCount = 4;
-	unsigned int taskID = 0;
-	unsigned int taskLastTime[taskCount];
-	long long taskInterval[taskCount] = {10000, 1000000, 60000000, 3600000000};
-	TaskFunction taskFunctions[taskCount] = {&update_hundredths, &update_seconds, &update_minutes, &update_hours};
-
-	unsigned int time[taskCount] = {0};
-	unsigned int currentTimerValue;
-
-	//configure drivers
-	configure_privateTimer();
-	configure_servoDrivers();
-
-	// Begin task timer now
-	reset_stopWatch(time, taskLastTime, taskCount);
-
-	while(1) {
-		// poll keys to check for user inputs
-		if(*key_ptr & 0x01) Timer_setControl(224, 0, 1, 1);						//enable timer when start pressed
-		else if(*key_ptr & 0x02) Timer_setControl(224, 0, 1, 0);				//disable timer when stop pressed
-		else if(*key_ptr &0x04) reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
-
-		// Read the current time
-		currentTimerValue = Timer_readTimer();
-
-		for (taskID = 0; taskID < taskCount; taskID++) {
-			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
-				time[taskID] = taskFunctions[taskID](time[3], time[taskID]);
-				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
-			}
-		}
-
-		// Make sure we clear the private timer interrupt flag if it is set
-		if (Timer_readInterrupt() & 0x1) {
-			// If the timer interrupt flag is set, clear the flag
-			Timer_clearInterrupt();
-		}
-
-		// Finally, reset the watchdog timer.
-		HPS_ResetWatchdog();
-	}
-
-
 }
