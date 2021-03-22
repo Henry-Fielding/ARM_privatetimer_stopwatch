@@ -24,6 +24,7 @@
 // useful hardware address definitions
 volatile unsigned int *key_ptr = (unsigned int *)0xFF200050; // KEYS 0-3 (push buttons)
 volatile unsigned int *LEDR_ptr = (unsigned int *)0xFF200000; // LEDS 0-9
+volatile unsigned int *key_edge_ptr = (unsigned int *)0xFF20005C;
 
 // Define new data type for a functions which takes an int and returns an int
 typedef unsigned int (*TaskFunction)(unsigned int, unsigned int);

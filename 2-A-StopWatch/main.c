@@ -15,14 +15,15 @@
 
 main() {
 	// taskscheduler variables
+	int temp;
 	const unsigned int taskCount = 4;
 	unsigned int taskID = 0;
 	unsigned int taskLastTime[taskCount];
 	long long taskInterval[taskCount] = {10000, 1000000, 60000000, 3600000000};
 	TaskFunction taskFunctions[taskCount] = {&update_hundredths, &update_seconds, &update_minutes, &update_hours};
 
-	unsigned int time[taskCount] = {0};
 	unsigned int currentTimerValue;
+	unsigned int time[taskCount] = {0};
 
 	//configure drivers
 	configure_privateTimer();
@@ -33,9 +34,15 @@ main() {
 
 	while(1) {
 		// poll keys to check for user inputs
-		if(*key_ptr & 0x01) Timer_setControl(224, 0, 1, 1);						//enable timer when start pressed
-		else if(*key_ptr & 0x02) Timer_setControl(224, 0, 1, 0);				//disable timer when stop pressed
-		else if(*key_ptr &0x04) reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
+		if(*key_edge_ptr & 0x01) Timer_setControl(224, 0, 1, 1);						//enable timer when start pressed
+		else if(*key_edge_ptr & 0x02) Timer_setControl(224, 0, 1, 0);				//disable timer when stop pressed
+		else if(*key_edge_ptr &0x04) reset_stopWatch(time, taskLastTime, taskCount);	//reset time when rest pressed
+		temp = *key_edge_ptr;
+		*key_edge_ptr = temp;
+
+
+
+
 
 		// Read the current time
 		currentTimerValue = Timer_readTimer();
