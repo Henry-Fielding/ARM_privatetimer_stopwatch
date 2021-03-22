@@ -33,31 +33,13 @@ volatile unsigned int *key_edge_ptr = (unsigned int *)0xFF20005C;
 // Function declarations
 //
 
-void configure_privateTimer (void);
-
-
 void configure_servoDrivers (void);
-
-
-//unsigned int update_hundredths (unsigned int);
-//
-//
-//unsigned int update_seconds (unsigned int);
-//
-//
-//unsigned int update_minutes (unsigned int);
-//
-//
-//unsigned int update_hours (unsigned int);
-
-
-void reset_stopWatch (unsigned int*, unsigned int*, unsigned int);
 
 void update_split_mode_stopWatch (int*);
 
-void split_stopWatch (unsigned int*, unsigned int*, unsigned int);
-
 void display_stopWatch (unsigned int*);
+
+void clear_inputs (void);
 
 
 #endif /* STOPWATCH_MAIN_H_ */

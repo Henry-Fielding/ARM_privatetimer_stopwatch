@@ -21,7 +21,7 @@ void configure_privateTimer () {
 	Timer_setControl(224, 0, 1, 0);	// timer intialised to disabled mode
 }
 
-void stopWatchTimer_updateTimer (TaskFunction* taskFunctions, unsigned int* time, unsigned int* taskLastTime, long long* taskInterval,  unsigned int taskCount) {
+void stopWatchTimer_updateTimer (TaskFunction* taskFunctions, unsigned int* time, unsigned int* taskLastTime, const unsigned int* taskInterval,  unsigned int taskCount) {
 	unsigned int taskID;
 	unsigned int currentTimerValue = Timer_readTimer();
 

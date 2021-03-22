@@ -15,14 +15,13 @@
 
 main() {
 	// taskscheduler variables
-	int temp;
 	int state = 0;
-
 	int splitMode = 0;
 
 	const unsigned int taskCount = 4;
+	const unsigned int period = 10000;
+	const unsigned int taskInterval[taskCount] = {period, 100*period, 6000*period, 360000*period};
 	unsigned int taskLastTime[taskCount];
-	long long taskInterval[taskCount] = {10000, 1000000, 60000000, 3600000000};
 	TaskFunction taskFunctions[taskCount] = {&update_hundredths, &update_seconds, &update_minutes, &update_hours};
 
 	unsigned int time[taskCount] = {0};
@@ -35,8 +34,6 @@ main() {
 
 	#define CUMMULATIVE_SPLIT 0
 	#define LAP_SPLIT 1
-
-
 
 	//configure drivers
 	configure_privateTimer();
@@ -59,48 +56,64 @@ main() {
 				display_stopWatch(time);
 
 				state = STOP_STATE;
-				break;
+			break;
 
 			case STOP_STATE :
 				Timer_setControl(224, 0, 1, 0);
 				display_stopWatch(time);
 				*LEDR_ptr |= 0x001;
 
-				if (*key_edge_ptr & 0x02) update_split_mode_stopWatch(&splitMode);
-
-				if(*key_edge_ptr & 0x01) state = START_STATE;
-				else if(*key_edge_ptr & 0x04) state = RESET_STATE;
-				else state = STOP_STATE;
-
-				break;
+				if (*key_edge_ptr & 0x02) {
+					update_split_mode_stopWatch(&splitMode);
+				}
+				// change state conditions
+				if(*key_edge_ptr & 0x01) {
+					state = START_STATE;
+				} else if(*key_edge_ptr & 0x04) {
+					state = RESET_STATE;
+				} else {
+					state = STOP_STATE;
+				}
+			break;
 
 			case START_STATE :
 				display_stopWatch(time);
 				Timer_setControl(224, 0, 1, 1);
-				*LEDR_ptr &= ~0x001;
+				*LEDR_ptr &= ~0x009;
 
-				if(*key_edge_ptr & 0x01) state = STOP_STATE;
-				else if(*key_edge_ptr & 0x04) {
-					state = SPLIT_STATE;
+				// change state conditions
+				if(*key_edge_ptr & 0x01) {
+					state = STOP_STATE;
+				} else if(*key_edge_ptr & 0x04) {
 					stopWatchTimer_splitTimer(time, splitTime, taskCount);
-					if (splitMode == LAP_SPLIT) stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
-				} else state = START_STATE;
+					if (splitMode == LAP_SPLIT) {
+						stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
+					}
+					state = SPLIT_STATE;
+				} else {
+					state = START_STATE;
+				}
 
-				break;
+			break;
 
 			case SPLIT_STATE :
 				display_stopWatch(splitTime);
 				Timer_setControl(224, 0, 1, 1);
+				*LEDR_ptr |= 0x008;
 
-				if(*key_edge_ptr & 0x04) state = START_STATE;
-				else state = SPLIT_STATE;
-
-				break;
+				// change state conditions
+				if(*key_edge_ptr & 0x04) {
+					state = START_STATE;
+				} else {
+					state = SPLIT_STATE;
+				}
+			break;
 
 		}
 
-		temp = *key_edge_ptr;
-		*key_edge_ptr = temp;
+
+		clear_inputs();
+
 
 
 
@@ -144,8 +157,6 @@ void update_split_mode_stopWatch (int* splitMode) {
 	}
 }
 
-
-
 void display_stopWatch (unsigned int* time) {
 	unsigned int hundredths = time[0];
 	unsigned int seconds = time[1];
@@ -163,6 +174,9 @@ void display_stopWatch (unsigned int* time) {
 		DE1SoC_SevenSeg_SetDoubleDec(2, minutes);
 		DE1SoC_SevenSeg_SetDoubleDec(4, hours);
 	}
+}
 
-
+void clear_inputs () {
+	unsigned int temp = *key_edge_ptr;
+	*key_edge_ptr = temp;
 }

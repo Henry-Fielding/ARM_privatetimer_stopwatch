@@ -18,7 +18,7 @@ typedef unsigned int (*TaskFunction)(unsigned int);
 //Define functions
 void configure_privateTimer (void);
 
-void stopWatchTimer_updateTimer (TaskFunction*, unsigned int*, unsigned int*, long long*,  unsigned int);
+void stopWatchTimer_updateTimer (TaskFunction*, unsigned int*, unsigned int*, const unsigned int*,  unsigned int);
 
 void stopWatchTimer_resetTimer (unsigned int*, unsigned int*, unsigned int);
 
