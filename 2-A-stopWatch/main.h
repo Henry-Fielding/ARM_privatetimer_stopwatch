@@ -27,7 +27,7 @@ volatile unsigned int *LEDR_ptr = (unsigned int *)0xFF200000; // LEDS 0-9
 volatile unsigned int *key_edge_ptr = (unsigned int *)0xFF20005C;
 
 // Define new data type for a functions which takes an int and returns an int
-typedef unsigned int (*TaskFunction)(unsigned int, unsigned int);
+typedef unsigned int (*TaskFunction)(unsigned int);
 
 //
 // Function declarations
@@ -39,16 +39,16 @@ void configure_privateTimer (void);
 void configure_servoDrivers (void);
 
 
-unsigned int update_hundredths (unsigned int, unsigned int);
+unsigned int update_hundredths (unsigned int);
 
 
-unsigned int update_seconds (unsigned int, unsigned int);
+unsigned int update_seconds (unsigned int);
 
 
-unsigned int update_minutes (unsigned int, unsigned int);
+unsigned int update_minutes (unsigned int);
 
 
-unsigned int update_hours (unsigned int, unsigned int);
+unsigned int update_hours (unsigned int);
 
 
 void reset_stopWatch (unsigned int*, unsigned int*, unsigned int);

@@ -74,11 +74,12 @@ main() {
 
 		for (taskID = 0; taskID < taskCount; taskID++) {
 			if ((taskLastTime[taskID] - currentTimerValue) >= taskInterval[taskID]) {
-				time[taskID] = taskFunctions[taskID](time[3], time[taskID]);
+				time[taskID] = taskFunctions[taskID](time[taskID]);
 				taskLastTime[taskID] = taskLastTime[taskID] - taskInterval[taskID];
 			}
-			display_stopWatch(time);
 		}
+
+		display_stopWatch(time);
 
 		// Make sure we clear the private timer interrupt flag if it is set
 		if (Timer_readInterrupt() & 0x1) {
@@ -115,24 +116,19 @@ void configure_servoDrivers () {
 //
 // Declare task scheduler functions
 //
-unsigned int update_hundredths (unsigned int hours, unsigned int hundredths) {
+unsigned int update_hundredths (unsigned int hundredths) {
 	if (hundredths < 99) hundredths = hundredths + 1;
 	else hundredths = 0;
-
-//	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
 
 	return hundredths;
 }
 
-unsigned int update_seconds (unsigned int hours, unsigned int seconds) {
+unsigned int update_seconds (unsigned int seconds) {
 	signed char position; // calibration performed manually as calibration function does not work
 	signed char calibration = 20;
 
 	if (seconds < 59) seconds = seconds + 1;
 	else seconds = 0;
-
-//	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(2, seconds);
-//	else DE1SoC_SevenSeg_SetDoubleDec(0, seconds);
 
 	if (seconds % 2) position = 64 + calibration;
 	else position = -64 + calibration;
@@ -142,21 +138,16 @@ unsigned int update_seconds (unsigned int hours, unsigned int seconds) {
 	return seconds;
 }
 
-unsigned int update_minutes (unsigned int hours, unsigned int minutes) {
+unsigned int update_minutes (unsigned int minutes) {
 	if (minutes < 59) minutes = minutes + 1;
 	else minutes = 0;
-
-//	if (hours < 1) DE1SoC_SevenSeg_SetDoubleDec(4, minutes);
-//	else DE1SoC_SevenSeg_SetDoubleDec(2, minutes);
 
 	return minutes;
 }
 
-unsigned int update_hours (unsigned int hours, unsigned int unused) {
+unsigned int update_hours (unsigned int hours) {
 	if (hours < 99) hours = hours + 1;
 	else hours = 0;
-
-//	if (hours > 0) DE1SoC_SevenSeg_SetDoubleDec(4, hours);
 
 	return hours;
 }
@@ -181,9 +172,17 @@ void display_stopWatch (unsigned int* time) {
 	unsigned int minutes = time[2];
 	unsigned int hours = time[3];
 
-	DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
-	DE1SoC_SevenSeg_SetDoubleDec(2, seconds);
-	DE1SoC_SevenSeg_SetDoubleDec(4, minutes);
+	if (hours <= 0) {	// if time is less than 1 hours show MM:SS:FF, show hundredths indicator LED
+		*LEDR_ptr |= 0x200;
+		DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
+		DE1SoC_SevenSeg_SetDoubleDec(2, seconds);
+		DE1SoC_SevenSeg_SetDoubleDec(4, minutes);
+	} else {	// if time is greater than 1 hours show HH:MM:SS
+		*LEDR_ptr &= ~0x200;
+		DE1SoC_SevenSeg_SetDoubleDec(0, seconds);
+		DE1SoC_SevenSeg_SetDoubleDec(2, minutes);
+		DE1SoC_SevenSeg_SetDoubleDec(4, hours);
+	}
 
 
 }
