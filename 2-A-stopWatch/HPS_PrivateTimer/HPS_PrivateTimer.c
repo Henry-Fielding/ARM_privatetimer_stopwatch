@@ -1,3 +1,14 @@
+/*
+ *	Private timer driver (source file)
+ *	-----------------------------------
+ *	Created on: 15 Mar 2021
+ *	Author: Henry Fielding
+ *
+ *	Description
+ *	-------------
+ *	Functions for interacting with the private timer of the the DE1-SoC computer.
+ */
+
 #include "HPS_PrivateTimer.h"
 
 //Driver Base Addresses

@@ -1,6 +1,6 @@
 /*
  *	Digital Stopwatch (source file)
- *	-------------------------------------------
+ *	--------------------------------
  *	Created on: 18 Mar 2021
  *	Author: Henry Fielding
  *

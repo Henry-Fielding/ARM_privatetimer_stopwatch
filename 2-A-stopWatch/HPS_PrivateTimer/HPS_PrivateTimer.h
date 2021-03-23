@@ -1,3 +1,14 @@
+/*
+ *	Private timer driver (header file)
+ *	-----------------------------------
+ *	Created on: 15 Mar 2021
+ *	Author: Henry Fielding
+ *
+ *	Description
+ *	-------------
+ *	Functions for interacting with the private timer of the the DE1-SoC computer.
+ */
+
 #include <stdbool.h>
 
 #define TIMER_SUCCESS       0
