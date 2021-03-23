@@ -3,7 +3,7 @@
  *
  *  Created on: 12 Feb 2021
  *      Author: Harry Clegg
- *      		You!
+ *      		Henry Fielding
  */
 
 #include "DE1SoC_SevenSeg.h"

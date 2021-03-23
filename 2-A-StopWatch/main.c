@@ -1,14 +1,13 @@
 /*
- * Digital Stopwatch
- *-------------------------------------------
- * 	Created on: 18 Mar 2021
- *	Author: Henry
+ *	Digital Stopwatch (source file)
+ *	-------------------------------------------
+ *	Created on: 18 Mar 2021
+ *	Author: Henry Fielding
  *
  *	Description
- *	------------
- *	This program uses a simple task scheduler and the private timer registers to
- *	perform the functions of a basic stopwatch and display the output on the 7 segment LEDS
- *
+ *	-------------
+ *	Program to handle the top level functionality of the stopwatch using a statemachine
+ *	taking inputs from keys [2:0] and outputting to 7 segment LEDS, red LEDs, and servo 0
  */
 
 #include "main.h"
@@ -57,8 +56,6 @@ main() {
 		// Finally, reset the watchdog timer.
 		HPS_ResetWatchdog();
 	}
-
-
 }
 
 
@@ -78,21 +75,21 @@ void configure_servoDrivers () {
 // - STOP_STATE disables the private timer and displays the current stopwatch time
 // - START_STATE enables the private timer and displays the current stopwatch time
 // - SPLIT_STATE enables the private timer and displays the split time (resets clock if lap split mode but not in cummulative split mode)
-void stopWatch_updateStateMachine (TaskFunction* taskFunctions, unsigned int* state, unsigned int* splitMode, unsigned int* time, unsigned int* splitTime, unsigned int* taskLastTime, const unsigned int* taskInterval,  unsigned int taskCount) {
-	switch (*state) {
+void stopWatch_updateStateMachine (TaskFunction* taskFunctions, unsigned int* state_ptr, unsigned int* splitMode_ptr, unsigned int* time, unsigned int* splitTime, unsigned int* taskLastTime, const unsigned int* taskInterval,  unsigned int taskCount) {
+	switch (*state_ptr) {
 		case RESET_STATE :
 			// pause and reset timer
 			Timer_setControl(224, 0, 1, 0);
 			stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
 
 			// change state conditions
-			*state = STOP_STATE;
+			*state_ptr = STOP_STATE;
 		break;
 
 		case STOP_STATE :
 			// pause timer and update split mode
 			Timer_setControl(224, 0, 1, 0);
-			stopWatch_updateSplitMode(splitMode);
+			stopWatch_updateSplitMode(splitMode_ptr);
 
 			// set stopwatch outputs
 			stopWatch_displayTime(time);
@@ -102,12 +99,12 @@ void stopWatch_updateStateMachine (TaskFunction* taskFunctions, unsigned int* st
 			// change state conditions
 			if(*key_edge_ptr & 0x01) {
 				stopWatch_clearInputs();
-				*state = START_STATE;
+				*state_ptr = START_STATE;
 			} else if(*key_edge_ptr & 0x04) {
 				stopWatch_clearInputs();
-				*state = RESET_STATE;
+				*state_ptr = RESET_STATE;
 			} else {
-				*state = STOP_STATE;
+				*state_ptr = STOP_STATE;
 			}
 		break;
 
@@ -123,17 +120,17 @@ void stopWatch_updateStateMachine (TaskFunction* taskFunctions, unsigned int* st
 			// change state conditions
 			if(*key_edge_ptr & 0x01) {
 				stopWatch_clearInputs();
-				*state = STOP_STATE;
+				*state_ptr = STOP_STATE;
 			} else if(*key_edge_ptr & 0x04) {
 				stopWatch_clearInputs();
-				stopWatchTimer_splitTimer(time, splitTime, taskCount); // save split value
-				if (*splitMode == LAP_SPLIT) {
+				stopWatchTimer_splitTimer(time, splitTime, taskCount);	// save split value
+				if (*splitMode_ptr == LAP_SPLIT) {
 					// reset stopwatch timer if in lap split mode
 					stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
 				}
-				*state = SPLIT_STATE;
+				*state_ptr = SPLIT_STATE;
 			} else {
-				*state = START_STATE;
+				*state_ptr = START_STATE;
 			}
 
 		break;
@@ -149,27 +146,25 @@ void stopWatch_updateStateMachine (TaskFunction* taskFunctions, unsigned int* st
 			// change state conditions
 			if(*key_edge_ptr & 0x04) {
 				stopWatch_clearInputs ();
-				*state = START_STATE;
+				*state_ptr = START_STATE;
 			} else {
-				*state = SPLIT_STATE;
+				*state_ptr = SPLIT_STATE;
 			}
 		break;
-
 	}
-
 }
 
 // function to update split mode
 // switches split mode when split button is pressed
-void stopWatch_updateSplitMode (unsigned int* splitMode) {
-	switch (*splitMode) {
+void stopWatch_updateSplitMode (unsigned int* splitMode_ptr) {
+	switch (*splitMode_ptr) {
 		case CUMULATIVE_SPLIT :
-			*LEDR_ptr &= ~0x004; // set Cumulative indicator
+			*LEDR_ptr &= ~0x004;	// set Cumulative indicator
 			*LEDR_ptr |= 0x002;
 
 			// change state conditions
 			if (*key_edge_ptr & 0x02) {
-				*splitMode = LAP_SPLIT;
+				*splitMode_ptr = LAP_SPLIT;
 				stopWatch_clearInputs ();
 			}
 		break;
@@ -180,7 +175,7 @@ void stopWatch_updateSplitMode (unsigned int* splitMode) {
 
 			// change state conditions
 			if (*key_edge_ptr & 0x02) {
-				*splitMode = CUMULATIVE_SPLIT;
+				*splitMode_ptr = CUMULATIVE_SPLIT;
 				stopWatch_clearInputs ();
 			}
 		break;
@@ -201,7 +196,7 @@ void stopWatch_displayTime (unsigned int* time) {
 		DE1SoC_SevenSeg_SetDoubleDec(0, hundredths);
 		DE1SoC_SevenSeg_SetDoubleDec(2, seconds);
 		DE1SoC_SevenSeg_SetDoubleDec(4, minutes);
-	} else {	// if time is greater than 1 hours show HH:MM:SS
+	} else {		// if time is greater than 1 hours show HH:MM:SS
 		*LEDR_ptr &= ~0x010;
 		DE1SoC_SevenSeg_SetDoubleDec(0, seconds);
 		DE1SoC_SevenSeg_SetDoubleDec(2, minutes);
@@ -214,9 +209,9 @@ void stopWatch_displayTime (unsigned int* time) {
 void stopWatch_updateMetronome (unsigned int* time) {
 	unsigned int seconds = time[1];
 	signed char position;
-	signed char calibration = 20; // calibration performed manually as calibration function does not work
+	signed char calibration = 20;	// calibration performed manually as calibration function does not work
 
-	if (seconds % 2) position = 64 + calibration; // alternate servo position every second
+	if (seconds % 2) position = 64 + calibration;	// alternate servo position every second
 	else position = -64 + calibration;
 
 	Servo_pulseWidth(0, position);
@@ -228,10 +223,3 @@ void stopWatch_clearInputs () {
 	unsigned int temp = *key_edge_ptr;
 	*key_edge_ptr = temp;
 }
-
-
-
-
-
-
-

@@ -1,11 +1,11 @@
 /*
- * Digital Stopwatch
- *-------------------------------------------
- * 	Created on: 18 Mar 2021
- *	Author: Henry
+ *	Digital Stopwatch (header file)
+ *	---------------------------------
+ *	Created on: 18 Mar 2021
+ *	Author: Henry Fielding
  *
  *	Description
- *	------------
+ *	-------------
  *	This program uses a simple task scheduler and the private timer registers to
  *	perform the functions of a basic stopwatch and display the output on the 7 segment LEDS
  *
@@ -15,6 +15,7 @@
 #define STOPWATCH_MAIN_H_
 
 // Include required header files
+#include "HPS_Watchdog/HPS_Watchdog.h"
 #include "DE1Soc_SevenSeg/DE1Soc_SevenSeg.h"
 #include "DE1SoC_Servo/DE1SoC_Servo.h"
 #include "stopWatchTimer.h"
