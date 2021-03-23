@@ -18,7 +18,8 @@ The included files and project heirarchy are as follows
 ### 3rd level
 | Filename | Description |
 |---|---|
-| HPS_PrivateTimer.c/.h | Functions for interacting with the private timer of the the DE1-SoC computer. |
+| HPS_PrivateTimer.c | Functions for interacting with the private timer of the the DE1-SoC computer. |
+| HPS_PrivateTimer.h        | header file for HPS_PrivateTimer.c |
 
 ## Externally Sourced Driver Files
 ### 2nd level
