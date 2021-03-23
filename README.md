@@ -20,8 +20,8 @@ The included files and project heirarchy are as follows
 |---|---|
 | HPS_PrivateTimer.c/.h | Functions for interacting with the private timer of the the DE1-SoC computer. |
 
-## externally sourced driver files
-# 2nd level
+## Externally Sourced Driver Files
+### 2nd level
 | Filename | Description | Company | Author/s |
 |---|---|---|---|
 | HPS_Watchdog.c./.h | Simple inline functions for resetting watchdog and returning the current watchdog timer value. | University of Leeds | T Carpenter |
