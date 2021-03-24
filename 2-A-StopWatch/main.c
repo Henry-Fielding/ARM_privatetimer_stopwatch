@@ -33,9 +33,6 @@ main() {
 	configure_privateTimer();
 	configure_servoDrivers();
 
-	// Begin task timer now
-	//stopWatchTimer_resetTimer(time, taskLastTime, taskCount);
-
 	while(1) {
 
 		// update the stopwatch timer value
@@ -43,9 +40,6 @@ main() {
 
 		// update stopwatch output mode
 		stopWatch_updateStateMachine (taskFunctions, &state, &splitMode, time, splitTime, taskLastTime, taskInterval, taskCount);
-
-		// clear user button inputs
-		//stopWatch_clearInputs();
 
 		// Make sure we clear the private timer interrupt flag if it is set
 		if (Timer_readInterrupt() & 0x1) {
@@ -67,7 +61,7 @@ void configure_servoDrivers () {
 	Servo_calibrate(0, calibrate); 	// set calibration offset (does not work)
 
 	Servo_enable(0, true); 			// enable servo 0
-	Servo_pulseWidthRange(0, true); // set servo 0 position to centre
+	Servo_pulseWidthRange(0, true);	// set servo 0 position to centre
 }
 
 // function to update the statemachine
@@ -93,7 +87,7 @@ void stopWatch_updateStateMachine (TaskFunction* taskFunctions, unsigned int* st
 
 			// set stopwatch outputs
 			stopWatch_displayTime(time);
-			stopWatch_updateMetronome (time);
+			stopWatch_updateMetronome(time);
 			*LEDR_ptr |= 0x001;		// display stopped indicator
 
 			// change state conditions
@@ -114,7 +108,7 @@ void stopWatch_updateStateMachine (TaskFunction* taskFunctions, unsigned int* st
 
 			// set stopwatch outputs
 			stopWatch_displayTime(time);
-			stopWatch_updateMetronome (time);
+			stopWatch_updateMetronome(time);
 			*LEDR_ptr &= ~0x009;	// turn off split and stopped indicators
 
 			// change state conditions

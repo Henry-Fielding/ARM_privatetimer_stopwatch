@@ -19,7 +19,6 @@
 // Define new data type for a functions which takes an int and returns an int
 typedef unsigned int (*TaskFunction)(unsigned int);
 
-
 // function to configure the private timer
 // initialises to prescaler = 244  and timer to disabled
 void configure_privateTimer (void);

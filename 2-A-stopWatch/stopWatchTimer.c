@@ -41,10 +41,11 @@ void stopWatchTimer_updateTimer (TaskFunction* taskFunctions, unsigned int* time
 // sets task last time for each task to current time
 void stopWatchTimer_resetTimer (unsigned int* time, unsigned int* taskLastTime, unsigned int arrayLength) {
 	unsigned int i;
+	unsigned int currentTimerValue = Timer_readTimer();
 
 	for (i = 0; i < arrayLength; i++) {
 		time[i] = 0;							// all time columns = 0
-		taskLastTime[i] = Timer_readTimer();	// all tasks start now
+		taskLastTime[i] = currentTimerValue;	// all tasks start now
 	}
 }
 
